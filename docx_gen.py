@@ -14,7 +14,7 @@ from download_pdf import get_pdf
 from download_pdf import Paper
 
 # GetPDF is a variable that controls whether to spider PDF files.
-GetPDF=False
+GetPDF=True
 
 
 # word format related functions
