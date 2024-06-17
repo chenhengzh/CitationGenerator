@@ -26,3 +26,5 @@ pip install -r requirements.txt
 - Set `GetPDF=True` in `docx_gen.py` and run `docx_gen.py`. This may take several hours, so using tmux is recommended.
 - Download the remaining PDFs manually in `paper_list/papername/`
 - Set `GetPDF=False` and run `docx_gen.py` again to update the hyperlinks in Word documents.
+
+Some data has been provided in the `paper_list/` directory; you can use it to test first.
