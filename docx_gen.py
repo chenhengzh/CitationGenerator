@@ -265,7 +265,7 @@ def docx_generator(paper_ls):
 
 def get_papers():
     dir_ls=os.listdir("./paper_list")
-    paper_ls = sorted([d for d in dir_ls if not d.endswith('.log')])
+    paper_ls = sorted([d for d in dir_ls if not (d.endswith('.log') or d.startswith('.'))])
     return paper_ls
 
 if __name__ == "__main__":
