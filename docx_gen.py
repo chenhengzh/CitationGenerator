@@ -86,10 +86,6 @@ def get_locallink(paper, pdf_list):
     return ""
     
 
-
-
-
-
 def input_docx(paper, doc_pth, is_pdf, pdf_list=[]):
     logging.info("+======writing item======+")
 
@@ -106,22 +102,22 @@ def input_docx(paper, doc_pth, is_pdf, pdf_list=[]):
 
     line1_text = paper.title+'\n'
     if is_pdf:
-        line0 = "[PDF downloaded]\n"
-        run0 = para.add_run(line0)
-        run0.font.name = "Arial"
-        run0.font.size = Pt(12)
-        run0.font.color.rgb = RGBColor(0, 200, 0) # green 
+        # line0 = "[PDF downloaded]\n"
+        # run0 = para.add_run(line0)
+        # run0.font.name = "Arial"
+        # run0.font.size = Pt(12)
+        # run0.font.color.rgb = RGBColor(0, 200, 0) # green 
         line1_link = paper.filename + '.pdf'
     else:
         pdf_link=get_locallink(paper,pdf_list)
         if pdf_link:
-            line0 = "[PDF downloaded]\n"
+            line1_link = pdf_link
+        else:
+            line0 = "[PDF not downloaded]\n"
             run0 = para.add_run(line0)
             run0.font.name = "Arial"
             run0.font.size = Pt(12)
-            run0.font.color.rgb = RGBColor(0, 200, 0) # green 
-            line1_link = pdf_link
-        else:
+            run0.font.color.rgb = RGBColor(200, 0, 0) # red 
             line1_link = paper.link
 
     add_hyperlink(para, line1_text,
