@@ -5,27 +5,6 @@ from fuzzywuzzy import fuzz
 
 Timeout=30
 
-class Paper:
-    def __init__(self, title='', info='', abstract='', PDF='', filename='', link='') -> None:
-        self.title = title
-        self.info = info
-        self.abstract = abstract
-        self.PDF = PDF
-        self.filename = filename
-        self.link = link
-
-    def display(self):
-        logging.info("+++===================================================================================================+++")
-        logging.info(f"title: {self.title}")
-        logging.info(f"filename: {self.filename}")
-        logging.info(f"info: {self.info}")  
-        logging.info(f"abstract: {self.abstract}")
-        if self.PDF == '':
-            logging.info("no PDF resource.")
-        else:
-            logging.info(f"PDF: {self.PDF}")
-        logging.info(f"paper_link: {self.link}")
-
 def are_strings_almost_matching(string1, string2, threshold=90):
     # 使用 fuzz.ratio() 比较字符串相似性
     similarity_ratio = fuzz.ratio(string1, string2)
@@ -87,18 +66,18 @@ def download_pdf_if_exists(url, save_path):
         return False
 
 
-def get_pdf(paper, pth):
-    link = paper.PDF
-    if not paper.PDF:
-        link = paper.link
+def get_pdf(cit, pth):
+    link = cit['PDF']
+    if not cit['PDF']:
+        link = cit['link']
     if link:
         logging.info("+==============try to get pdf from link=============+")
         flag = download_pdf_if_exists(link, pth)
         if not flag:
             logging.info("+==============search pdf in arxiv=============+")
-            flag = download_pdf_in_arxiv(paper.title, paper.abstract, pth)
+            flag = download_pdf_in_arxiv(cit['title'], cit['abstract'], pth)
     else:
         logging.info("+==============search pdf in arxiv=============+")
-        flag = download_pdf_in_arxiv(paper.title, paper.abstract, pth)
+        flag = download_pdf_in_arxiv(cit['title'], cit['abstract'], pth)
 
     return flag

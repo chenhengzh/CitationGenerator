@@ -1,3 +1,4 @@
+import json
 import requests
 import pickle
 import os
@@ -11,10 +12,25 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.oxml import OxmlElement
 import logging
 from download_pdf import get_pdf
-from download_pdf import Paper
 
 # GetPDF is a variable that controls whether to spider PDF files.
 GetPDF=True
+
+
+def display_cit(cit):
+    logging.info(
+        "+++===================================================================================================+++"
+    )
+    logging.info(f"index: {cit['index']}")
+    logging.info(f"title: {cit['title']}")
+    logging.info(f"filename: {cit['filename']}")
+    logging.info(f"info: {cit['info']}")
+    logging.info(f"abstract: {cit['abstract']}")
+    if cit['PDF'] == "":
+        logging.info("no PDF resource.")
+    else:
+        logging.info(f"PDF: {cit['PDF']}")
+    logging.info(f"paper_link: {cit['link']}")
 
 
 # word format related functions
@@ -84,13 +100,9 @@ def get_locallink(paper, pdf_list):
         if ismatch:
             return pdf
     return ""
-    
 
 
-
-
-
-def input_docx(paper, doc_pth, is_pdf, pdf_list=[]):
+def input_docx(cit, doc_pth, is_pdf, pdf_list=[]):
     logging.info("+======writing item======+")
 
     doc = Document(doc_pth)
@@ -104,16 +116,16 @@ def input_docx(paper, doc_pth, is_pdf, pdf_list=[]):
     # set the hanging indent
     para.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
 
-    line1_text = paper.title+'\n'
+    line1_text = cit['title']+'\n'
     if is_pdf:
         line0 = "[PDF downloaded]\n"
         run0 = para.add_run(line0)
         run0.font.name = "Arial"
         run0.font.size = Pt(12)
         run0.font.color.rgb = RGBColor(0, 200, 0) # green 
-        line1_link = paper.filename + '.pdf'
+        line1_link = cit['filename'] + '.pdf'
     else:
-        pdf_link=get_locallink(paper,pdf_list)
+        pdf_link=get_locallink(cit,pdf_list)
         if pdf_link:
             line0 = "[PDF downloaded]\n"
             run0 = para.add_run(line0)
@@ -122,18 +134,18 @@ def input_docx(paper, doc_pth, is_pdf, pdf_list=[]):
             run0.font.color.rgb = RGBColor(0, 200, 0) # green 
             line1_link = pdf_link
         else:
-            line1_link = paper.link
+            line1_link = cit['link']
 
     add_hyperlink(para, line1_text,
                   line1_link)
 
-    line2 = paper.info+'\n'
+    line2 = cit['info']+'\n'
     run2 = para.add_run(line2)
     run2.font.name = 'Arial'
     run2.font.size = Pt(10)
     run2.font.color.rgb = RGBColor(0, 102, 33)  # green
 
-    line3 = paper.abstract
+    line3 = cit['abstract']
     run3 = para.add_run(line3)
     run3.font.name = 'Arial'
     run3.font.size = Pt(10)
@@ -167,7 +179,7 @@ def get_citation(dir_name, file_name):
     return paper
 
 
-def list_files_in_directory(dir_name):
+def list_data_in_directory(dir_name):
     # 使用 os.listdir 获取文件夹内所有文件和子文件夹的列表
     folder_path = f'./paper_list/{dir_name}/data/'
     files = os.listdir(folder_path)
@@ -188,26 +200,31 @@ def list_files_in_directory(dir_name):
 #     return c
 
 
-
 def docx_worker(paper_title):
     print(f"***++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++***")
     print(f"Start writing the docx document of the paper: [{paper_title}]")
     print(f"***++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++***\n")
 
     dir_name = get_filename(paper_title)
-    files = list_files_in_directory(dir_name)
+    if os.path.exists(f'./paper_list/{dir_name}/citation_info.json'):
+        with open(f'./paper_list/{dir_name}/citation_info.json', 'r') as file:
+            cit_list = json.load(file)
+    else:
+        cit_list = []
+
+    # files = list_data_in_directory(dir_name)
     isPDF = 0
 
     logging.info("\n\n\n")
     logging.info(f"\n***+++++++++++++++++++++++++++++writing the docx of Paper: [{dir_name}]+++++++++++++++++++++++++++++***\n")
-    if not files:
+    if not cit_list:
         logging.info(f"Paper: [{dir_name}] has no citation")
         print(f"***++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++***")
         print(f"Paper: [{dir_name}] has no citation")
         print(f"***++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++***")
         print()
         return
-    
+
     if GetPDF:
         doc_pth = f'./paper_list/{dir_name}/{dir_name}.docx'
     else:
@@ -218,25 +235,25 @@ def docx_worker(paper_title):
 
     if not GetPDF:
         dir_path=os.path.dirname(doc_pth)
+        # 记录已经下载的pdf文件，用于修改相对地址
         pdf_files = [file for file in os.listdir(dir_path) if file.endswith('.pdf')]
 
-    for file in files:
-        paper = get_citation(dir_name, file)
-        paper.display()
-        logging.info(f"paper_index: {file}")
-        pdf_pth = f'./paper_list/{dir_name}/{paper.filename}.pdf'
+    for cit in cit_list:
+
+        display_cit(cit)
+        pdf_pth = f"./paper_list/{dir_name}/{cit['filename']}.pdf"
 
         if GetPDF:
-            isPDF = get_pdf(paper, pdf_pth)
-            input_docx(paper, doc_pth, isPDF)
+            isPDF = get_pdf(cit, pdf_pth)
+            input_docx(cit, doc_pth, isPDF)
         else:
-            input_docx(paper, doc_pth, False, pdf_list=pdf_files)
+            input_docx(cit, doc_pth, False, pdf_list=pdf_files)
         logging.info("+++===================================================================================================+++\n")
 
     print(f"***++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++***")
     print(f"The docx document of the paper: [{paper_title}] has been written successfully.")
     print(f"***++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++***\n")
-    
+
 
 def docx_generator(paper_ls):   
     print()
@@ -245,8 +262,7 @@ def docx_generator(paper_ls):
     print("+++===================================================================================================+++")
     print()
 
-    log_filename = f'./paper_list/docx.log'
-    logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(message)s')
+    
     logging.info("\n\n\n")
     logging.info(f"#####***++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++***#####")
     logging.info(f"The following is a new process")
@@ -265,13 +281,15 @@ def docx_generator(paper_ls):
 
 def get_papers():
     dir_ls=os.listdir("./paper_list")
-    paper_ls = sorted([d for d in dir_ls if not d.endswith('.log')])
+    paper_ls = sorted([d for d in dir_ls if not (d.endswith('.log') or d.startswith('.'))])
     return paper_ls
 
 if __name__ == "__main__":
     if os.path.exists("./paper_list"):
         paper_list=get_papers()
         # print(paper_list)
+        log_filename = f'./paper_list/docx.log'
+        logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(message)s')
         docx_generator(paper_list)
     else:
         print("Please use CitationSpider to get citation data in advance")
