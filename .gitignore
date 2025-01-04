@@ -1,1 +1,6 @@
 paper_list/
+test*
+*.zip
+*.pyc
+*.DS_Store
+*说明*

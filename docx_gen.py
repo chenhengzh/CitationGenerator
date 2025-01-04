@@ -93,10 +93,10 @@ def get_or_create_hyperlink_style(d):
 
     return "Hyperlink"
 
-def get_locallink(paper, pdf_list):
+def get_locallink(cit, pdf_list):
     # paper_file=get_filename(paper.title)
     for pdf in pdf_list:
-        ismatch=are_strings_almost_matching(paper.filename, pdf[:-4],threshold=90)
+        ismatch=are_strings_almost_matching(cit['filename'], pdf[:-4],threshold=90)
         if ismatch:
             return pdf
     return ""
@@ -118,22 +118,22 @@ def input_docx(cit, doc_pth, is_pdf, pdf_list=[]):
 
     line1_text = cit['title']+'\n'
     if is_pdf:
-        line0 = "[PDF downloaded]\n"
-        run0 = para.add_run(line0)
-        run0.font.name = "Arial"
-        run0.font.size = Pt(12)
-        run0.font.color.rgb = RGBColor(0, 200, 0) # green 
+        # line0 = "[PDF downloaded]\n"
+        # run0 = para.add_run(line0)
+        # run0.font.name = "Arial"
+        # run0.font.size = Pt(12)
+        # run0.font.color.rgb = RGBColor(0, 200, 0) # green 
         line1_link = cit['filename'] + '.pdf'
     else:
         pdf_link=get_locallink(cit,pdf_list)
         if pdf_link:
-            line0 = "[PDF downloaded]\n"
+            line1_link = pdf_link
+        else:
+            line0 = "[PDF not downloaded]\n"
             run0 = para.add_run(line0)
             run0.font.name = "Arial"
             run0.font.size = Pt(12)
-            run0.font.color.rgb = RGBColor(0, 200, 0) # green 
-            line1_link = pdf_link
-        else:
+            run0.font.color.rgb = RGBColor(200, 0, 0) # red 
             line1_link = cit['link']
 
     add_hyperlink(para, line1_text,
@@ -226,9 +226,9 @@ def docx_worker(paper_title):
         return
 
     if GetPDF:
-        doc_pth = f'./paper_list/{dir_name}/{dir_name}.docx'
+        doc_pth = f'./paper_list/{dir_name}/(temp) {dir_name}.docx'
     else:
-        doc_pth = f'./paper_list/{dir_name}/(final) {dir_name}.docx'
+        doc_pth = f'./paper_list/{dir_name}/{dir_name}.docx'
 
     doc = Document()
     doc.save(doc_pth)
