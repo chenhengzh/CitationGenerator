@@ -157,7 +157,7 @@ def input_docx(cit, doc_pth, is_pdf, pdf_list=[]):
 
 def are_strings_almost_matching(string1, string2, threshold=90):
     # 使用 fuzz.ratio() 比较字符串相似性
-    similarity_ratio = fuzz.ratio(string1, string2)
+    similarity_ratio = fuzz.ratio(string1.lower(), string2.lower())
     return similarity_ratio >= threshold
 
 
